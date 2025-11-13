@@ -7,7 +7,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { ContextIdFactory, ModuleRef } from '@nestjs/core';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { toJSONSchema } from 'zod';
 import { McpRegistryService } from '../mcp-registry.service';
 import { McpHandlerBase } from './mcp-handler.base';
 import { ZodTypeAny } from 'zod';
@@ -75,12 +75,12 @@ export class McpToolsHandler extends McpHandlerBase {
 
         // Add input schema if defined
         if (tool.metadata.parameters) {
-          toolSchema['inputSchema'] = zodToJsonSchema(tool.metadata.parameters);
+          toolSchema['inputSchema'] = toJSONSchema(tool.metadata.parameters);
         }
 
         // Add output schema if defined, ensuring it has type: 'object'
         if (tool.metadata.outputSchema) {
-          const outputSchema = zodToJsonSchema(tool.metadata.outputSchema);
+          const outputSchema = toJSONSchema(tool.metadata.outputSchema);
 
           // Create a new object that explicitly includes type: 'object'
           const jsonSchema = {
@@ -129,7 +129,11 @@ export class McpToolsHandler extends McpHandlerBase {
               );
             }
             // Use validated arguments to ensure defaults and transformations are applied
-            request.params.arguments = validation.data;
+            // validation.data is unknown in Zod v4's safeParse; assert to any to satisfy existing runtime usage
+            request.params.arguments = validation.data as unknown as Record<
+              string,
+              unknown
+            >;
           }
 
           const contextId = ContextIdFactory.getByRequest(httpRequest);

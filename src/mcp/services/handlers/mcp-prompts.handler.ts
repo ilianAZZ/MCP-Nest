@@ -36,13 +36,17 @@ export class McpPromptsHandler extends McpHandlerBase {
           name: prompt.metadata.name,
           description: prompt.metadata.description,
           arguments: prompt.metadata.parameters
-            ? Object.entries(prompt.metadata.parameters.shape).map(
-                ([name, field]): PromptArgument => ({
-                  name,
-                  description: field.description,
-                  required: !field.isOptional(),
-                }),
-              )
+            ? (() => {
+                const shape = (prompt.metadata.parameters as any)
+                  .shape as Record<string, any>;
+                return Object.entries(shape).map(
+                  ([name, field]: [string, any]): PromptArgument => ({
+                    name,
+                    description: field?.description,
+                    required: !(field?.isOptional?.() ?? false),
+                  }),
+                );
+              })()
             : [],
         }));
 

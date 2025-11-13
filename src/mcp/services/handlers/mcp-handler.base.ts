@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Progress } from '@modelcontextprotocol/sdk/types.js';
-import { Context, McpRequest, SerializableValue } from '../../interfaces';
+import { Context, SerializableValue } from '../../interfaces';
 import { McpRegistryService } from '../mcp-registry.service';
 
 export abstract class McpHandlerBase {
@@ -18,7 +18,9 @@ export abstract class McpHandlerBase {
 
   protected createContext(
     mcpServer: McpServer,
-    mcpRequest: McpRequest,
+    // McpRequest typing can be complex across zod versions; use `any` here to avoid
+    // type incompatibilities introduced by migrating to Zod v4 while preserving runtime behavior.
+    mcpRequest: any,
   ): Context {
     // handless stateless traffic where notifications and progress are not supported
     if ((mcpServer.server.transport as any).sessionId === undefined) {
@@ -71,7 +73,9 @@ export abstract class McpHandlerBase {
 
   protected createStatelessContext(
     mcpServer: McpServer,
-    mcpRequest: McpRequest,
+    // McpRequest typing can be complex across zod versions; use `any` here to avoid
+    // type incompatibilities introduced by migrating to Zod v4 while preserving runtime behavior.
+    mcpRequest: any,
   ): Context {
     const warn = (fn: string) => {
       this.logger.warn(`Stateless context: '${fn}' is not supported.`);
